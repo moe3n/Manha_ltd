@@ -1,0 +1,29 @@
+# Render Blueprint. In the Render dashboard: New → Blueprint → pick this repo.
+# The disk keeps the SQLite database and uploaded photos across deploys; Render's free
+# web services have no disk and lose files on every restart, so this uses the Starter plan.
+services:
+  - type: web
+    name: manha
+    runtime: node
+    plan: starter
+    region: singapore
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DB_PATH
+        value: /data/manha.db
+      - key: UPLOADS_DIR
+        value: /data/uploads
+      - key: SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+    disk:
+      name: manha-data
+      mountPath: /data
+      sizeGB: 1

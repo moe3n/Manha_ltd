@@ -15,7 +15,11 @@ First boot creates the admin login and prints it (`admin@manha.shop` / `changeme
 ADMIN_EMAIL=you@shop.com ADMIN_PASSWORD='a long password' npm start
 ```
 
-Other environment variables: `PORT` (3000), `DB_PATH` (`data/manha.db`), `SECRET` (cookie signing key; generated and stored on first boot if unset).
+Other environment variables: `PORT` (3000), `DB_PATH` (`data/manha.db`), `UPLOADS_DIR` (`uploads`), `SECRET` (cookie signing key; generated and stored on first boot if unset).
+
+## Deploy on Render
+
+`render.yaml` is a Render Blueprint: in the Render dashboard choose New → Blueprint, pick this repository and branch, and set `ADMIN_EMAIL` and `ADMIN_PASSWORD` when asked. It creates one web service (Starter plan, Singapore) with a 1GB disk at `/data` holding the database and uploaded photos. Free web services on Render have no disk, so orders and photos would vanish on every restart; that is why the blueprint uses Starter. Any other host works the same way: Node 22+, `npm start`, and a persistent folder for `DB_PATH` and `UPLOADS_DIR`.
 
 ## What is in it
 

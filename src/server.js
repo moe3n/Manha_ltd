@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { createHmac, randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
+import { mkdirSync } from 'node:fs';
 import { db, SECRET, settings, setSetting, products, orders, stats, findAdmin, checkPassword, hashPassword, CATEGORIES, ORDER_STATUSES, PAYMENT_STATUSES, PAYMENT_METHODS } from './db.js';
 import * as store from './views/store.js';
 import * as admin from './views/admin.js';
@@ -10,7 +11,9 @@ export const app = express();
 app.disable('x-powered-by');
 app.use(express.urlencoded({ extended: false, limit: '64kb' }));
 app.use(express.static('public', { maxAge: '1h' }));
-app.use('/uploads', express.static('uploads', { maxAge: '7d' }));
+const UPLOADS = process.env.UPLOADS_DIR || 'uploads';
+mkdirSync(UPLOADS, { recursive: true });
+app.use('/uploads', express.static(UPLOADS, { maxAge: '7d' }));
 
 // ---------- cookies (signed with HMAC; stdlib only) ----------
 const sign = (v) => createHmac('sha256', SECRET).update(v).digest('base64url');
@@ -103,7 +106,7 @@ app.get('/order/:id/:token', (req, res) => {
 
 // ---------- admin ----------
 const upload = multer({
-  storage: multer.diskStorage({ destination: 'uploads', filename: (req, file, cb) => cb(null, randomUUID() + extname(file.originalname).toLowerCase()) }),
+  storage: multer.diskStorage({ destination: UPLOADS, filename: (req, file, cb) => cb(null, randomUUID() + extname(file.originalname).toLowerCase()) }),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => cb(null, /^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(file.mimetype)),
 });
