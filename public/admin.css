@@ -1,0 +1,91 @@
+/* Manha admin. Crisp and fast: this screen is used fifty times a day, so almost nothing animates. */
+:root {
+  --bg: #ffffff; --surface: #f4f4f2; --surface-2: #e9e8e4; --ink: #1f2b4d; --muted: #6a7186; --accent: #f7941d; --danger: #b3261e;
+  --font: "Hanken Grotesk", system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); --t-press: 140ms; --t-hover: 160ms;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul { margin: 0; padding: 0; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.head { font-size: 1.75rem; font-weight: 500; letter-spacing: -0.03em; line-height: 1.1; display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+.lead { font-size: 1.125rem; font-weight: 500; letter-spacing: -0.01em; }
+.small { font-size: 0.8125rem; }
+.muted { color: var(--muted); }
+.nums { font-variant-numeric: tabular-nums; }
+.r { text-align: right; }
+
+.admin { display: grid; grid-template-columns: 13.5rem 1fr; min-height: 100vh; }
+.rail { position: sticky; top: 0; height: 100vh; padding: 1.5rem 1rem; background: var(--ink); color: #fff; display: flex; flex-direction: column; gap: 2rem; }
+.rail .wordmark { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.03em; text-decoration: none; padding-inline: 0.75rem; }
+.rail nav { display: grid; gap: 0.125rem; }
+.rail nav a, .rail__foot a, .rail__foot button { display: block; width: 100%; text-align: left; padding: 0.55rem 0.75rem; text-decoration: none; color: #fff; transition: background-color var(--t-hover) ease; }
+.rail nav a[aria-current] { background: rgba(255, 255, 255, 0.14); }
+.rail__foot { margin-top: auto; }
+@media (hover: hover) { .rail nav a:hover, .rail__foot a:hover, .rail__foot button:hover { background: rgba(255, 255, 255, 0.09); } }
+.panel { padding: 2rem clamp(1rem, 3vw, 3rem) 4rem; display: grid; gap: 1.5rem; align-content: start; min-width: 0; }
+
+.button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.5rem; padding: 0 1rem; background: var(--ink); color: #fff; font-weight: 500; text-decoration: none; white-space: nowrap; transition: transform var(--t-press) var(--ease-out), background-color var(--t-hover) ease; }
+.button:active { transform: scale(0.97); }
+.button--small { min-height: 2rem; padding: 0 0.75rem; font-size: 0.8125rem; }
+.button--danger { background: var(--danger); }
+@media (hover: hover) { .button:hover { background: #121a33; } .button--danger:hover { background: #8f1d17; } }
+.field { width: 100%; min-height: 2.5rem; padding: 0.5rem 0.75rem; background: var(--bg); border: 0; border-radius: 0; box-shadow: inset 0 0 0 1px var(--surface-2); }
+.field:focus { box-shadow: inset 0 0 0 1px var(--ink); outline: 0; }
+textarea.field { resize: vertical; }
+label { display: block; font-weight: 500; }
+label > .field, label > select { margin-top: 0.3rem; font-weight: 400; }
+.check { display: flex; gap: 0.5rem; align-items: center; font-weight: 400; }
+.check input { accent-color: var(--ink); width: 1.1rem; height: 1.1rem; }
+.stack { display: grid; gap: 1rem; align-content: start; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+.cols--tight { grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+.block { background: var(--bg); padding: 1.25rem; display: grid; gap: 1rem; min-width: 0; }
+.notice { padding: 0.75rem 1rem; background: var(--ink); color: #fff; }
+.notice--bad { background: var(--danger); }
+.filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.filters .field { width: auto; min-width: 14rem; }
+.filters select { min-width: 10rem; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.stat { display: grid; gap: 0.25rem; padding: 1.25rem; background: var(--bg); text-decoration: none; transition: transform var(--t-press) var(--ease-out); }
+.stat:active { transform: scale(0.98); }
+.stat__v { font-size: 1.75rem; font-weight: 500; letter-spacing: -0.03em; line-height: 1; }
+.bars { display: flex; align-items: flex-end; gap: 4px; height: 7rem; }
+.bar { flex: 1; height: max(var(--h), 2px); background: var(--ink); transition: background-color var(--t-hover) ease; }
+.bar:last-child { background: var(--accent); }
+@media (hover: hover) { .bar:hover { background: var(--muted); } }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th { text-align: left; font-weight: 500; padding: 0.5rem 0.6rem; color: var(--muted); font-size: 0.8125rem; }
+.table th.r { text-align: right; }
+.table td { padding: 0.6rem; vertical-align: top; }
+.table tbody tr:nth-child(odd) td { background: var(--surface); }
+.table a { text-decoration: none; font-weight: 500; }
+.table .low { color: var(--danger); font-weight: 500; }
+.thumb { width: 2.5rem; }
+.thumb img { width: 2.5rem; height: 3.125rem; object-fit: cover; background: var(--surface-2); }
+.tag { display: inline-block; padding: 0.1rem 0.5rem; font-size: 0.8125rem; font-weight: 500; background: var(--surface-2); white-space: nowrap; }
+.tag--paid, .tag--delivered, .tag--confirmed { background: var(--ink); color: #fff; }
+.tag--new, .tag--pending { background: var(--accent); color: var(--ink); }
+.tag--cancelled, .tag--refunded { background: var(--surface-2); color: var(--muted); text-decoration: line-through; }
+.preview img { width: 100%; max-width: 20rem; aspect-ratio: 4 / 5; object-fit: cover; background: var(--surface-2); }
+
+.admin--login { display: grid; place-items: center; }
+.login { display: grid; gap: 1rem; width: min(100%, 22rem); padding: 2rem; background: var(--bg); }
+
+@media (max-width: 800px) {
+  .admin { grid-template-columns: 1fr; }
+  .rail { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.75rem; }
+  .rail nav { display: flex; flex-wrap: wrap; }
+  .rail__foot { margin: 0; display: flex; }
+  .rail nav a, .rail__foot a, .rail__foot button { width: auto; padding: 0.4rem 0.6rem; }
+  .panel { padding: 1rem; }
+  .stats, .cols { grid-template-columns: 1fr; }
+  .table { display: block; overflow-x: auto; }
+}
