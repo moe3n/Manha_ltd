@@ -21,7 +21,7 @@ ${description ? `<meta name="description" content="${esc(description)}">
 <meta name="theme-color" content="#1f2b4d">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/${css}.css">
 <link rel="icon" href="/img/favicon.svg">
 <script>document.documentElement.classList.add('js')</script>

@@ -1,4 +1,4 @@
-/* Manha storefront. Direction: the pinned poster · Instrument Serif for the voice, Hanken Grotesk for the text · navy on warm white.
+/* Manha storefront. Direction: the pinned poster · Bodoni Moda for the voice, Hanken Grotesk for the text · navy on warm white.
    Products are drawn without a ground; the page gives them all the same backdrop, so only the product carries colour. */
 :root {
   --bg: #f7f6f3;                /* warm grey-white, not cream */
@@ -12,7 +12,7 @@
   --field-1: #0b0d12; --field-1-ink: #ffffff;
   --field-2: #e1dfd8; --field-2-ink: #1f2b4d;
 
-  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-display: "Bodoni Moda", "Bodoni 72", Didot, Georgia, serif;
   --font: "Hanken Grotesk", system-ui, sans-serif;
   /* five sizes on the page: small, body, lead, head (every heading and the hero halves), and the email as display */
   --step-small: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);
@@ -57,8 +57,8 @@ body::after { content: ""; position: fixed; inset: 0; z-index: 40; pointer-event
 @media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
 
 /* ---------- type ---------- */
-h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; }
-.head { font-size: var(--step-head); line-height: 0.95; letter-spacing: -0.02em; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; font-variation-settings: "opsz" 96; text-wrap: balance; }
+.head { font-size: var(--step-head); line-height: 0.98; letter-spacing: -0.015em; }
 .lead { font-size: var(--step-lead); line-height: 1.25; letter-spacing: -0.01em; }
 h2.lead, h1.lead { font-family: var(--font-display); }
 .small { font-size: var(--step-small); line-height: 1.4; }
@@ -248,7 +248,7 @@ main { position: relative; z-index: 2; background: var(--bg); }
 /* ---------- contact: the email as display type ---------- */
 .contact { min-height: 100svh; padding: 1.5rem var(--margin) 2rem; display: grid; grid-template-rows: auto 1fr auto; background: var(--ink); color: #fff; }
 .contact__ask { max-width: 30ch; }
-.contact__mail { align-self: end; justify-self: start; width: 100%; font-family: var(--font-display); font-size: calc((100vw - 2 * var(--margin)) / (var(--chars, 16) * 0.44)); line-height: 1; letter-spacing: -0.02em; text-decoration: none; margin-bottom: 12vh; overflow-wrap: anywhere; transition: color var(--t-hover) ease; }
+.contact__mail { align-self: end; justify-self: start; width: 100%; font-family: var(--font-display); font-size: calc((100vw - 2 * var(--margin)) / (var(--chars, 16) * 0.53)); line-height: 1; letter-spacing: -0.02em; text-decoration: none; margin-bottom: 12vh; overflow-wrap: anywhere; transition: color var(--t-hover) ease; }
 .contact__foot { display: flex; justify-content: space-between; gap: var(--gutter); align-items: end; }
 .contact__social { text-align: right; }
 .contact__social .link { margin-left: 0.6rem; }
