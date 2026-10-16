@@ -35,6 +35,10 @@ Other environment variables: `PORT` (3000), `DB_PATH` (`data/manha.db`), `UPLOAD
 
 Without `STRIPE_SECRET_KEY` the shop still takes orders; they stay "pending" and the order page says a payment link will follow. The order page also asks Stripe directly when a customer returns before the webhook lands, so a missing webhook delays nothing for the customer. Refunds are done in the Stripe dashboard, then marked refunded in admin.
 
+## Design notes
+
+Direction: the taste-skill's "pinned poster" (the four counters pass between one split sentence). Two deliberate redraws of the dealt sheet, both recorded here: the type slot moved from Hanken Grotesk alone to Instrument Serif for the voice with Hanken Grotesk for text, because a perfume and fashion house wants an editorial serif; and the ground moved from pure white to a warm grey-white. Products are drawn without a background so the page gives them all the same backdrop tone and only the product carries colour. Five type sizes, no ornaments, one accent on the action. Motion follows Emil Kowalski's rules: transform and opacity only, custom ease-out curves, press feedback on every control, staggered entrances, reduced-motion fallbacks, cross-document view transitions.
+
 ## Replace the drawings with photographs
 
 The seed products use flat drawings in `public/img/` because this was built without the shop's own pictures. Upload a real photo per product in Admin → Products (portrait 4:5 looks best, same crop for all). The four home-page frames are `public/img/cat-*.svg`; replace them with 3:4 photographs of each counter and keep the file names, or redraw them with `node scripts/draw-images.mjs`.

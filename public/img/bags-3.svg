@@ -1,8 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500">
-<rect width="1200" height="1500" fill="#e3e1dc"/>
-<g transform="translate(600 750) scale(1.25) translate(-500 -500)">
-  <path d="M380 330 a120 120 0 0 1 240 0 v60 h-50 v-60 a70 70 0 0 0 -140 0 v60 h-50z" fill="#05070a"/>
-  <rect x="200" y="380" width="600" height="440" fill="#5c6b4a"/>
-  <rect x="200" y="380" width="600" height="60" fill="#05070a" opacity="0.35"/>
-  <rect x="460" y="560" width="80" height="80" fill="#05070a"/></g>
+
+<g transform="translate(600 750) scale(1.2) translate(-500 -500)">
+  <path d="M352 420 C352 300 448 300 448 420" fill="none" stroke="#c9b89a" stroke-width="26" stroke-linecap="round"/>
+  <path d="M552 420 C552 300 648 300 648 420" fill="none" stroke="#c9b89a" stroke-width="26" stroke-linecap="round"/>
+  <rect x="140" y="412" width="720" height="350" rx="175" fill="#5c6b4a"/>
+  <ellipse cx="190" cy="587" rx="70" ry="160" fill="#46533a"/>
+  <ellipse cx="810" cy="587" rx="70" ry="160" fill="#46533a"/>
+  <rect x="300" y="438" width="400" height="14" rx="7" fill="#c9b89a"/>
+  <rect x="440" y="600" width="120" height="70" rx="6" fill="#c9b89a"/></g>
 </svg>

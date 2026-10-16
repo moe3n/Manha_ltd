@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500">
-<rect width="1200" height="1500" fill="#1f2b4d"/>
-<g transform="translate(600 750) scale(1.25) translate(-500 -500)">
-  <rect x="440" y="150" width="120" height="70" fill="#1f2b4d"/>
-  <rect x="455" y="220" width="90" height="60" fill="#f4f4f2"/>
-  <path d="M330 300 h340 a40 40 0 0 1 40 40 v440 a40 40 0 0 1 -40 40 h-340 a40 40 0 0 1 -40 -40 v-440 a40 40 0 0 1 40 -40z" fill="#f4f4f2"/>
-  <rect x="360" y="400" width="280" height="200" fill="#1f2b4d" opacity="0.9"/>
-  <rect x="330" y="640" width="340" height="180" fill="#1f2b4d" opacity="0.18"/></g>
+
+<g transform="translate(600 750) scale(1.2) translate(-500 -500)">
+  <rect x="432" y="118" width="136" height="112" rx="8" fill="#1f2b4d"/>
+  <rect x="432" y="206" width="136" height="24" fill="#0b0d12" opacity="0.22"/>
+  <rect x="466" y="230" width="68" height="52" fill="#d9d2c2"/>
+  <path d="M300 334 L378 282 H622 L700 334 V862 Q700 882 680 882 H320 Q300 882 300 862 Z" fill="#d9d2c2"/>
+  <path d="M332 430 H668 V850 Q668 860 658 860 H342 Q332 860 332 850 Z" fill="#c9b89a"/>
+  <rect x="332" y="340" width="20" height="500" fill="#ffffff" opacity="0.32"/>
+  <rect x="402" y="522" width="196" height="128" fill="#f7f5f0"/>
+  <rect x="436" y="560" width="128" height="9" fill="#d9d2c2"/>
+  <rect x="462" y="584" width="76" height="7" fill="#d9d2c2" opacity="0.6"/>
+  <rect x="436" y="612" width="128" height="4" fill="#d9d2c2" opacity="0.4"/></g>
 </svg>

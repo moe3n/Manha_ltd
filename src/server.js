@@ -73,8 +73,11 @@ app.get('/p/:slug', (req, res) => {
   const p = products.bySlug(req.params.slug);
   if (!p) return res.status(404).send(store.layout({ title: 'Not found', s: req.s, body: store.notFound() }));
   const more = products.all({ category: p.category, limit: 5 }).filter((m) => m.id !== p.id).slice(0, 4);
-  render(req, res, p.name, store.product({ p, more, added: 'added' in req.query, s: req.s }));
+  // Complete the gift: the newest thing from each of the other three counters.
+  const pair = Object.keys(CATEGORIES).filter((c) => c !== p.category).map((c) => products.all({ category: c, limit: 1 })[0]).filter(Boolean);
+  render(req, res, p.name, store.product({ p, more, pair, added: 'added' in req.query, s: req.s }), { description: p.description });
 });
+app.get('/help', (req, res) => render(req, res, 'Delivery, returns, privacy and terms', store.help({ s: req.s })));
 app.post('/cart/add', (req, res) => {
   const p = products.get(Number(req.body.id));
   if (!p || !p.active || p.stock < 1) return res.redirect('/shop');

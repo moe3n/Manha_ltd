@@ -8,15 +8,20 @@ export const variants = (p) => p.variants.split(',').map((v) => v.trim()).filter
 export const img = (src, alt, attrs = '') => `<img src="${esc(src || '/img/empty.svg')}" alt="${esc(alt)}" width="1200" height="1500" ${attrs}>`;
 export const attr = (cond, name) => (cond ? ` ${name}` : '');
 
-export const head = (title, css) => `<!doctype html>
+export const head = (title, css, description = '') => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
+${description ? `<meta name="description" content="${esc(description)}">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:image" content="/img/cat-perfume.svg">` : ''}
+<meta name="theme-color" content="#1f2b4d">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/${css}.css">
 <link rel="icon" href="/img/favicon.svg">
 <script>document.documentElement.classList.add('js')</script>

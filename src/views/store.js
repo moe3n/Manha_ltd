@@ -3,9 +3,10 @@ import { CATEGORIES } from '../db.js';
 
 const catLink = (c, cur) => `<a href="/shop/${c}" class="link${cur === c ? ' is-current' : ''}">${CATEGORIES[c]}</a>`;
 
-export function layout({ title, s, cartCount = 0, body, ink = 'light' }) {
-  return `${head(title ? `${title} · ${s.store_name}` : `${s.store_name}: ${s.tagline}`, 'store')}
-<body data-ink="${ink}">
+export function layout({ title, s, cartCount = 0, body, description = '' }) {
+  return `${head(title ? `${title} · ${s.store_name}` : `${s.store_name}: ${s.tagline}`, 'store', description || `${s.store_name} means gift. Perfume, shoes, bags and clothing from ${s.city}, delivered anywhere in the UK, wrapped with a written card.`)}
+<body>
+<a class="skip" href="#main">Skip to content</a>
 <header class="bar wrap">
   <a href="/" class="wordmark">${esc(s.store_name)}</a>
   <nav class="bar__links">
@@ -15,7 +16,7 @@ export function layout({ title, s, cartCount = 0, body, ink = 'light' }) {
   </nav>
   <a href="/shop" class="button button--small">Shop</a>
 </header>
-<main>
+<main id="main">
 ${body}
 </main>
 <section class="contact" id="contact">
@@ -23,7 +24,7 @@ ${body}
   <a class="contact__mail" href="mailto:${esc(s.email)}" style="--chars:${s.email.length}">${esc(s.email).replace('@', '@<wbr>')}</a>
   <div class="contact__foot">
     <p class="small"><a href="tel:${esc(s.phone.replace(/\s/g, ''))}" class="link">${esc(s.phone)}</a><br>${esc(s.address)}<br>${esc(s.hours)}</p>
-    <p class="small contact__social"><a class="link" href="${esc(s.facebook)}">Facebook</a> <a class="link" href="${esc(s.instagram)}">Instagram</a><br>© ${new Date().getFullYear()} ${esc(s.store_name)} Ltd. Prices include VAT.</p>
+    <p class="small contact__social"><a class="link" href="${esc(s.facebook)}">Facebook</a> <a class="link" href="${esc(s.instagram)}">Instagram</a><br><a class="link" href="/help#delivery">Delivery and returns</a> <a class="link" href="/help#privacy">Privacy</a> <a class="link" href="/help#terms">Terms</a><br>© ${new Date().getFullYear()} ${esc(s.store_name)} Ltd. Prices include VAT.</p>
   </div>
 </section>
 <script src="/store.js" defer></script>
@@ -81,22 +82,20 @@ export function home({ featured, latest, counts, s }) {
   </div>
 </section>
 
-<section class="gift wrap" id="gift">
-  <div class="gift__text">
-    <h2 class="head" data-reveal>${esc(s.store_name)} means gift.</h2>
-    <p data-reveal>So every order can leave as one. Write the card here, and we set it in our hand, wrap the box in navy paper and leave the price off the slip. Your words are kept for checkout.</p>
-    <form class="gift__form" data-gift data-reveal style="--i:1">
-      <label>To <input class="field" name="gift_to" maxlength="40" placeholder="Nusrat"></label>
-      <label>Message <textarea class="field" name="gift_message" maxlength="140" rows="3" placeholder="For the first day of the new job."></textarea></label>
-      <label>From <input class="field" name="gift_from" maxlength="40" placeholder="Rafi"></label>
-    </form>
-  </div>
+<section class="gift" id="gift">
+  <h2 class="head gift__head" data-reveal>${esc(s.store_name)} means gift.</h2>
+  <p class="gift__lead lead" data-reveal style="--i:1">So every order can leave as one. Write the card here; we set it by hand and leave the price off the slip.</p>
   <div class="card" aria-live="polite" data-reveal style="--i:2">
     <p class="card__to">To <span data-card="to">Nusrat</span>,</p>
     <p class="card__msg"><span data-card="message">For the first day of the new job.</span></p>
     <p class="card__from">From <span data-card="from">Rafi</span></p>
     <p class="card__mark">${esc(s.store_name)}</p>
   </div>
+  <form class="gift__form" data-gift data-reveal style="--i:3">
+    <label>To <input class="field" name="gift_to" maxlength="40" placeholder="Nusrat"></label>
+    <label>Message <textarea class="field" name="gift_message" maxlength="140" rows="2" placeholder="For the first day of the new job."></textarea></label>
+    <label>From <input class="field" name="gift_from" maxlength="40" placeholder="Rafi"></label>
+  </form>
 </section>
 
 <section class="faq">
@@ -111,7 +110,7 @@ export function home({ featured, latest, counts, s }) {
       <details><summary>Do you deliver outside the UK?</summary><p>Not yet. Everywhere in the UK, including Northern Ireland and the islands, in two to three working days. Email us for anywhere else and we will quote the postage.</p></details>
     </div>
     <a href="/shop" class="button">Start shopping</a>
-    <a href="tel:${esc(s.phone.replace(/\s/g, ''))}" class="link link-plain">Or call ${esc(s.phone)}</a>
+    <a href="/help" class="link link-plain">Delivery, returns and the small print</a>
   </div>
   <div class="faq__pics">
     <img class="faq__tall shutter" data-reveal src="/img/faq-tall.svg" alt="A navy gift box tied with a cream ribbon" width="900" height="1200" loading="lazy">
@@ -144,7 +143,8 @@ export function shop({ list, category, q, s }) {
 }
 
 // ---------- product ----------
-export function product({ p, more, added, s }) {
+const MATERIAL = { perfume: 'Eau de parfum, sealed with the batch code on box and bottle', shoes: 'Full-grain leather, resoleable', bags: 'Canvas or vegetable-tanned leather, brass fittings', clothing: 'Natural fibres, pre-washed' };
+export function product({ p, more, pair, added, s }) {
   const vs = variants(p);
   return `
 <section class="product">
@@ -162,17 +162,50 @@ export function product({ p, more, added, s }) {
       </fieldset>` : ''}
       <label class="qty">Quantity <input class="field nums" type="number" name="qty" value="1" min="1" max="${p.stock}"></label>
       <button class="button" type="submit">Add to cart · ${money(p.price)}</button>
-      ${added ? `<p class="notice" role="status">Added. <a class="link-plain" href="/cart">Go to cart</a></p>` : ''}
+      ${added ? `<p class="notice notice--enter" role="status">Added. <a class="link-plain" href="/cart">Go to cart</a></p>` : ''}
     </form>
-    <p class="small">${p.stock <= 3 ? `Only ${p.stock} left. ` : ''}Delivery ${money(s.delivery_fee)}, free over ${money(s.free_over)}. 14-day returns. Gift wrap and a written card at checkout.</p>`
+    ${p.stock <= 3 ? `<p class="small">Only ${p.stock} left.</p>` : ''}`
     : `<p class="lead">Sold out. <a class="link-plain" href="mailto:${esc(s.email)}">Email us</a> and we will tell you when it is back.</p>`}
+    <dl class="facts">
+      <dt>Material</dt><dd>${MATERIAL[p.category]}</dd>
+      <dt>Delivery</dt><dd>${money(s.delivery_fee)} by Royal Mail Tracked 48, free over ${money(s.free_over)}. Two to three working days.</dd>
+      <dt>Returns</dt><dd>14 days, unworn, in the box. Prepaid label for the first exchange.</dd>
+      <dt>As a gift</dt><dd>Tick the box at checkout: navy paper, a card in our hand, no price on the slip.</dd>
+    </dl>
   </div>
 </section>
+${pair.length ? `<section class="more wrap">
+  <h2 class="head" data-reveal>Complete the gift</h2>
+  <ul class="row">${pair.map((m, i) => `<li data-reveal style="--i:${i}"><a href="/p/${m.slug}" class="tile"><span class="tile__pic">${img(m.image, m.name, 'loading="lazy"')}</span><span class="tile__name">${esc(m.name)}</span><span class="tile__price nums">${money(m.price)}</span></a></li>`).join('')}</ul>
+</section>` : ''}
 ${more.length ? `<section class="more wrap">
   <h2 class="head" data-reveal>More ${CATEGORIES[p.category].toLowerCase()}</h2>
-  <ul class="row">${more.map((m) => `<li><a href="/p/${m.slug}" class="tile"><span class="tile__pic">${img(m.image, m.name, 'loading="lazy"')}</span><span class="tile__name">${esc(m.name)}</span><span class="tile__price nums">${money(m.price)}</span></a></li>`).join('')}</ul>
+  <ul class="row">${more.map((m, i) => `<li data-reveal style="--i:${i}"><a href="/p/${m.slug}" class="tile"><span class="tile__pic">${img(m.image, m.name, 'loading="lazy"')}</span><span class="tile__name">${esc(m.name)}</span><span class="tile__price nums">${money(m.price)}</span></a></li>`).join('')}</ul>
 </section>` : ''}`;
 }
+
+// ---------- help: delivery, returns, privacy, terms ----------
+export const help = ({ s }) => `
+<section class="wrap help">
+  <h1 class="head" data-rise style="--i:0">The small print</h1>
+  <div class="help__cols">
+    <article id="delivery" data-reveal>
+      <h2 class="lead">Delivery and returns</h2>
+      <p>Orders go by Royal Mail Tracked 48 for ${money(s.delivery_fee)}, free when the subtotal is ${money(s.free_over)} or more. Allow two to three working days anywhere in the UK, including Northern Ireland and the islands. We email the tracking number when it leaves.</p>
+      <p>Return anything within 14 days of delivery, unworn and in its packaging, for a full refund to the card you paid with. Email ${esc(s.email)} with your order number and we send a prepaid Royal Mail label for the first exchange; further returns cost the postage. Sealed perfume can be returned only unopened. This sits on top of your rights under the Consumer Contracts Regulations 2013 and the Consumer Rights Act 2015.</p>
+    </article>
+    <article id="privacy" data-reveal style="--i:1">
+      <h2 class="lead">Privacy</h2>
+      <p>We keep your name, address, email and phone number to deliver the order and answer questions about it, and the gift card text so we can write it. Card payments are handled by Stripe; we never see or store your card number. We do not sell or share your details with anyone except the courier and Stripe, and we do not send marketing unless you ask for it.</p>
+      <p>Orders are kept for six years for tax records. Email ${esc(s.email)} to see or delete what we hold. The site sets one cookie for your cart and one for the gift card you are writing; neither tracks you anywhere else.</p>
+    </article>
+    <article id="terms" data-reveal style="--i:2">
+      <h2 class="lead">Terms</h2>
+      <p>${esc(s.store_name)} Ltd, ${esc(s.address)}. Prices are in pounds and include VAT. An order is accepted when we email to say it has shipped; until then we can cancel and refund it, for example if the last one sold in the shop first. Sizes are UK sizes. Colours on screen can differ a little from the thing in your hand.</p>
+      <p class="small muted">Sample wording. Have your accountant or solicitor confirm the company details and anything specific to your business before launch.</p>
+    </article>
+  </div>
+</section>`;
 
 // ---------- cart ----------
 export function cart({ items, subtotal, s }) {
