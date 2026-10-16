@@ -48,6 +48,10 @@ node .claude/skills/taste-skill/scripts/inspect.mjs http://localhost:3000/   # n
 node scripts/shots.mjs                     # screenshots of every page at desktop and phone width (needs Playwright)
 ```
 
-## Design skills
+## Design skills and MCP servers
 
-`.claude/skills/` holds the design skills the site was built with, for Claude Code to use on future changes: Emil Kowalski's `animate`, `emil-design-eng`, `improve-animations`, `review-animations`, `animation-vocabulary`, `animation-performance`, `find-animation-opportunities`, `pick-ui-library`, `break-ui`, `prototype` (github.com/emilkowalski/skill) and Leonxlnx's `taste-skill`, `brandkit`, `redesign-skill`, `minimalist-skill`, `soft-skill`, `brutalist-skill`, `output-skill` (github.com/Leonxlnx/taste-skill). The dealt direction sheet is in `.taste-skill/direction.json`.
+`.claude/skills/` holds the design skills the site was built with, for Claude Code to use on future changes: Emil Kowalski's `animate`, `emil-design-eng`, `improve-animations`, `review-animations`, `animation-vocabulary`, `animation-performance`, `find-animation-opportunities`, `pick-ui-library`, `break-ui`, `prototype` (github.com/emilkowalski/skill); Leonxlnx's `taste-skill`, `brandkit`, `redesign-skill`, `minimalist-skill`, `soft-skill`, `brutalist-skill`, `output-skill` (github.com/Leonxlnx/taste-skill); and Paul Bakaus's `impeccable` (github.com/pbakaus/impeccable) with its four subagents in `.claude/agents/` and its design-detector hooks in `.claude/settings.json`. Run `/impeccable init` once to write `PRODUCT.md`, then `/impeccable audit`, `critique`, `polish` and friends. Its launcher downloads a small binary on first run; `npx impeccable update` keeps it current. The dealt taste-skill direction sheet is in `.taste-skill/direction.json`.
+
+`.mcp.json` registers two MCP servers for Claude Code in this project:
+- **figma** (`https://mcp.figma.com/mcp`): on first use Claude Code opens a browser for Figma's OAuth login. Check it with `/mcp`.
+- **playwright** (`@playwright/mcp`): drives a real Chromium so Claude can open pages, click through checkout and take screenshots. Needs `npx playwright install chromium` once on a new machine.
