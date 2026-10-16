@@ -1,4 +1,4 @@
-import { esc, money, date, img, head } from './shared.js';
+import { esc, money, pounds, date, img, head } from './shared.js';
 import { CATEGORIES, ORDER_STATUSES, PAYMENT_STATUSES, PAYMENT_METHODS } from '../db.js';
 
 const sel = (name, options, cur, labels = {}) => `<select class="field" name="${name}">${options.map((o) => `<option value="${esc(o)}"${o === cur ? ' selected' : ''}>${esc(labels[o] || o)}</option>`).join('')}</select>`;
@@ -49,7 +49,7 @@ export function dashboard({ st, s }) {
   <div class="bars" role="img" aria-label="Order value per day for the last fourteen days">
     ${days.map((x) => `<div class="bar" style="--h:${Math.round((x.v / max) * 100)}%" title="${x.d}: ${money(x.v)}, ${x.n} orders"><span class="sr-only">${x.d} ${money(x.v)}</span></div>`).join('')}
   </div>
-  <p class="small muted">Orders placed, excluding cancelled. Oldest on the left.</p>
+  <p class="small muted">Paid orders by day. Oldest on the left.</p>
 </section>
 <div class="cols">
   <section class="block">
@@ -70,9 +70,9 @@ function ordersTable(list) {
   <tbody>${list.map((o) => `<tr>
     <td class="nums"><a href="/admin/orders/${o.id}">${o.id}</a></td>
     <td class="nums">${date(o.created_at)}</td>
-    <td>${esc(o.name)}<br><span class="small muted nums">${esc(o.phone)}</span></td>
+    <td>${esc(o.name)}<br><span class="small muted">${esc(o.postcode)} · ${esc(o.email)}</span></td>
     <td class="nums r">${money(o.total)}</td>
-    <td>${PAYMENT_METHODS[o.payment_method]} ${tag(o.payment_status)}</td>
+    <td>${tag(o.payment_status)}</td>
     <td>${tag(o.status)}</td>
   </tr>`).join('')}</tbody></table>`;
 }
@@ -81,7 +81,7 @@ function ordersTable(list) {
 export const orders = ({ list, q, status, s }) => `
 <h1 class="head">Orders <span class="muted nums">${list.length}</span></h1>
 <form class="filters" method="get">
-  <input class="field" type="search" name="q" value="${esc(q)}" placeholder="Name, phone, transaction ID or #">
+  <input class="field" type="search" name="q" value="${esc(q)}" placeholder="Name, email, postcode, payment ref or #">
   ${sel('status', ['', ...ORDER_STATUSES], status, { '': 'Any status' })}
   <button class="button" type="submit">Filter</button>
 </form>
@@ -98,7 +98,7 @@ export function orderDetail({ o, items, s }) {
     <tr><td>Delivery</td><td></td><td class="nums r">${money(o.delivery)}</td></tr>
     <tr><th>Total</th><td></td><th class="nums r">${money(o.total)}</th></tr></tbody></table>
     <h2 class="lead">Customer</h2>
-    <p>${esc(o.name)}<br><a href="tel:${esc(o.phone)}" class="nums">${esc(o.phone)}</a><br>${esc(o.address)}, ${esc(o.city)}</p>
+    <p>${esc(o.name)}<br><a href="mailto:${esc(o.email)}">${esc(o.email)}</a> · <a href="tel:${esc(o.phone)}" class="nums">${esc(o.phone)}</a><br>${esc(o.address)}<br>${esc(o.city)} ${esc(o.postcode)}</p>
     ${o.note ? `<p><b>Note:</b> ${esc(o.note)}</p>` : ''}
     ${o.gift ? `<p><b>Gift.</b> Wrap it, leave the price off the slip.<br>Card: “To ${esc(o.gift_to)}, ${esc(o.gift_message)}”</p>` : ''}
   </section>
@@ -111,8 +111,9 @@ export function orderDetail({ o, items, s }) {
     <form method="post" action="/admin/orders/${o.id}/payment" class="stack">
       <h2 class="lead">Payment ${tag(o.payment_status)}</h2>
       <p>${PAYMENT_METHODS[o.payment_method]} · <span class="nums">${money(o.total)}</span></p>
+      <p class="small muted">Refund in the Stripe dashboard, then mark it refunded here. Mark paid by hand only for orders paid another way.</p>
       ${sel('payment_status', PAYMENT_STATUSES, o.payment_status)}
-      <label>Transaction ID <input class="field nums" name="trx_id" value="${esc(o.trx_id)}"></label>
+      <label>Payment reference <input class="field nums" name="trx_id" value="${esc(o.trx_id)}" placeholder="Stripe payment id, or a note"></label>
       <button class="button" type="submit">Save payment</button>
     </form>
   </section>
@@ -127,11 +128,11 @@ export const payments = ({ list, payment_status, s }) => `
   <button class="button" type="submit">Filter</button>
 </form>
 ${list.length ? `<table class="table">
-<thead><tr><th>#</th><th>When</th><th>Customer</th><th>Method</th><th>Transaction ID</th><th class="r">Amount</th><th>Status</th><th></th></tr></thead>
+<thead><tr><th>#</th><th>When</th><th>Customer</th><th>Method</th><th>Payment reference</th><th class="r">Amount</th><th>Status</th><th></th></tr></thead>
 <tbody>${list.map((o) => `<tr>
   <td class="nums"><a href="/admin/orders/${o.id}">${o.id}</a></td>
   <td class="nums">${date(o.created_at)}</td>
-  <td>${esc(o.name)}<br><span class="small muted nums">${esc(o.phone)}</span></td>
+  <td>${esc(o.name)}<br><span class="small muted">${esc(o.email)}</span></td>
   <td>${PAYMENT_METHODS[o.payment_method]}</td>
   <td class="nums">${esc(o.trx_id) || '<span class="muted">—</span>'}</td>
   <td class="nums r">${money(o.total)}</td>
@@ -165,8 +166,8 @@ ${error ? `<p class="notice notice--bad" role="alert">${esc(error)}</p>` : ''}
     <label>Name <input class="field" name="name" required value="${v('name')}"></label>
     <label>Category ${sel('category', Object.keys(CATEGORIES), p.category || 'perfume', CATEGORIES)}</label>
     <div class="cols cols--tight">
-      <label>Price (৳) <input class="field nums" type="number" name="price" min="0" required value="${v('price')}"></label>
-      <label>Was (৳, optional) <input class="field nums" type="number" name="compare_price" min="0" value="${v('compare_price')}"></label>
+      <label>Price (£) <input class="field nums" type="number" step="0.01" name="price" min="0" required value="${p.id ? pounds(p.price) : v('price')}"></label>
+      <label>Was (£, optional) <input class="field nums" type="number" step="0.01" name="compare_price" min="0" value="${p.id && p.compare_price ? pounds(p.compare_price) : v('compare_price')}"></label>
       <label>Stock <input class="field nums" type="number" name="stock" min="0" required value="${v('stock', 0)}"></label>
     </div>
     <label>Sizes or variants, comma separated <input class="field" name="variants" value="${v('variants')}" placeholder="S, M, L or 50ml, 100ml"></label>
@@ -199,14 +200,14 @@ ${error ? `<p class="notice notice--bad" role="alert">${esc(error)}</p>` : ''}
     ${f('email', 'Email', 'type="email"')}
     ${f('phone', 'Phone')}
     ${f('address', 'Address')}
+    ${f('city', 'Town or city (used in the page copy)')}
     ${f('hours', 'Opening hours')}
     ${f('facebook', 'Facebook URL')}
     ${f('instagram', 'Instagram URL')}
-    <h2 class="lead">Payments and delivery</h2>
-    ${f('bkash', 'bKash number', 'inputmode="tel"')}
-    ${f('nagad', 'Nagad number', 'inputmode="tel"')}
-    ${f('delivery_dhaka', 'Delivery fee in Dhaka (৳)', 'type="number" min="0"')}
-    ${f('delivery_outside', 'Delivery fee outside Dhaka (৳)', 'type="number" min="0"')}
+    <h2 class="lead">Delivery</h2>
+    <label>Delivery fee (£) <input class="field nums" type="number" step="0.01" min="0" name="delivery_fee" value="${pounds(s.delivery_fee)}"></label>
+    <label>Free delivery from (£ subtotal) <input class="field nums" type="number" step="0.01" min="0" name="free_over" value="${pounds(s.free_over)}"></label>
+    <p class="small muted">Card payments run through Stripe. The keys live in the server's environment (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET), not here.</p>
     <button class="button" type="submit">Save settings</button>
   </form>
   <form method="post" action="/admin/password" class="stack">

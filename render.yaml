@@ -6,7 +6,7 @@ services:
     name: manha
     runtime: node
     plan: starter
-    region: singapore
+    region: frankfurt
     buildCommand: npm ci --omit=dev
     startCommand: npm start
     healthCheckPath: /
@@ -22,6 +22,10 @@ services:
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD
+        sync: false
+      - key: STRIPE_SECRET_KEY      # sk_live_… from dashboard.stripe.com → Developers → API keys
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET  # whsec_… from Developers → Webhooks, endpoint https://<your host>/stripe/webhook
         sync: false
     disk:
       name: manha-data

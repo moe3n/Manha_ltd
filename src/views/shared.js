@@ -1,7 +1,9 @@
 // ponytail: template literals, no view engine. esc() everything that came from a user or the DB.
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-export const money = (n) => '৳' + new Intl.NumberFormat('en-IN').format(Number(n) || 0);
-export const date = (s) => new Date(s.replace(' ', 'T') + 'Z').toLocaleString('en-GB', { timeZone: 'Asia/Dhaka', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+export const money = (pence) => '£' + new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format((Number(pence) || 0) / 100);
+export const pounds = (pence) => ((Number(pence) || 0) / 100).toFixed(2); // for form inputs
+export const toPence = (v) => Math.max(0, Math.round(Number(String(v).replace(/[£,\s]/g, '')) * 100) || 0);
+export const date = (s) => new Date(s.replace(' ', 'T') + 'Z').toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 export const variants = (p) => p.variants.split(',').map((v) => v.trim()).filter(Boolean);
 export const img = (src, alt, attrs = '') => `<img src="${esc(src || '/img/empty.svg')}" alt="${esc(alt)}" width="1200" height="1500" ${attrs}>`;
 export const attr = (cond, name) => (cond ? ` ${name}` : '');

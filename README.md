@@ -19,13 +19,21 @@ Other environment variables: `PORT` (3000), `DB_PATH` (`data/manha.db`), `UPLOAD
 
 ## Deploy on Render
 
-`render.yaml` is a Render Blueprint: in the Render dashboard choose New → Blueprint, pick this repository and branch, and set `ADMIN_EMAIL` and `ADMIN_PASSWORD` when asked. It creates one web service (Starter plan, Singapore) with a 1GB disk at `/data` holding the database and uploaded photos. Free web services on Render have no disk, so orders and photos would vanish on every restart; that is why the blueprint uses Starter. Any other host works the same way: Node 22+, `npm start`, and a persistent folder for `DB_PATH` and `UPLOADS_DIR`.
+`render.yaml` is a Render Blueprint: in the Render dashboard choose New → Blueprint, pick this repository and branch, and set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` when asked. It creates one web service (Starter plan, Frankfurt, the closest region to the UK) with a 1GB disk at `/data` holding the database and uploaded photos. Free web services on Render have no disk, so orders and photos would vanish on every restart; that is why the blueprint uses Starter. Any other host works the same way: Node 22+, `npm start`, and a persistent folder for `DB_PATH` and `UPLOADS_DIR`.
 
 ## What is in it
 
-**Storefront** `/`, `/shop`, `/shop/:category`, `/p/:slug`, `/cart`, `/checkout`, `/order/:id/:token`. Cart lives in a signed cookie, so it works without JavaScript. Checkout takes cash on delivery, bKash or Nagad (Send Money + transaction ID), a gift option with a written card, and delivery fees by city.
+**Storefront** `/`, `/shop`, `/shop/:category`, `/p/:slug`, `/cart`, `/checkout`, `/order/:id/:token`. Cart lives in a signed cookie, so it works without JavaScript. Checkout collects the UK address, then hands the customer to Stripe's hosted payment page (card, Apple Pay, Google Pay). A flat delivery fee, free over a threshold, both set in admin. Gift option with a written card. Prices are in pounds and stored in pence.
 
-**Admin** `/admin`: dashboard (paid revenue, awaiting payment, new orders, low stock, 14-day bars), orders (filter, status, payment, gift card text), payments (verify bKash/Nagad transaction IDs, mark paid or refunded), products (create, edit, delete, photo upload, variants, featured, hidden), settings (store details, payment numbers, delivery fees, your login).
+**Admin** `/admin`: dashboard (paid revenue, awaiting payment, new orders, low stock, 14-day bars), orders (filter, status, payment, gift card text; cancelling puts stock back), payments (Stripe references, mark paid or refunded), products (create, edit, delete, photo upload, sizes, featured, hidden), settings (store details, delivery fee and free-over threshold, your login).
+
+## Stripe
+
+1. Create a Stripe account for the UK business and get the secret key from Developers → API keys. Set it as `STRIPE_SECRET_KEY` (use the `sk_test_…` key first; test card 4242 4242 4242 4242).
+2. Developers → Webhooks → Add endpoint: `https://<your host>/stripe/webhook`, event `checkout.session.completed`. Set its signing secret as `STRIPE_WEBHOOK_SECRET`.
+3. Set `PUBLIC_URL` to the site's public address if the host does not provide one (Render sets `RENDER_EXTERNAL_URL` automatically).
+
+Without `STRIPE_SECRET_KEY` the shop still takes orders; they stay "pending" and the order page says a payment link will follow. The order page also asks Stripe directly when a customer returns before the webhook lands, so a missing webhook delays nothing for the customer. Refunds are done in the Stripe dashboard, then marked refunded in admin.
 
 ## Replace the drawings with photographs
 

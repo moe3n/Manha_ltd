@@ -3,12 +3,29 @@ import multer from 'multer';
 import { createHmac, randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import { mkdirSync } from 'node:fs';
-import { db, SECRET, settings, setSetting, products, orders, stats, findAdmin, checkPassword, hashPassword, CATEGORIES, ORDER_STATUSES, PAYMENT_STATUSES, PAYMENT_METHODS } from './db.js';
+import { db, SECRET, settings, setSetting, deliveryFor, products, orders, stats, findAdmin, checkPassword, hashPassword, CATEGORIES, ORDER_STATUSES, PAYMENT_STATUSES } from './db.js';
+import * as stripe from './stripe.js';
+import { toPence } from './views/shared.js';
 import * as store from './views/store.js';
 import * as admin from './views/admin.js';
 
 export const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', 1); // Render and most hosts terminate TLS in front of us
+const origin = (req) => process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
+
+// Stripe tells us when a payment completed. Raw body first: the signature covers the exact bytes.
+app.post('/stripe/webhook', express.raw({ type: '*/*', limit: '256kb' }), (req, res) => {
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const event = secret && stripe.webhookEvent(req.body.toString(), req.get('stripe-signature'), secret);
+  if (!event) return res.status(400).send('bad signature');
+  if (event.type === 'checkout.session.completed' && event.data.object.payment_status === 'paid') {
+    const id = Number(event.data.object.metadata?.order_id || event.data.object.client_reference_id);
+    if (orders.get(id)) orders.setPayment(id, 'paid', event.data.object.payment_intent || event.data.object.id);
+  }
+  res.json({ received: true });
+});
+
 app.use(express.urlencoded({ extended: false, limit: '64kb' }));
 app.use(express.static('public', { maxAge: '1h' }));
 const UPLOADS = process.env.UPLOADS_DIR || 'uploads';
@@ -80,28 +97,44 @@ app.get('/cart', (req, res) => render(req, res, 'Cart', store.cart({ ...cartItem
 app.get('/checkout', (req, res) => {
   const c = cartItems(req);
   if (!c.items.length) return res.redirect('/cart');
-  render(req, res, 'Checkout', store.checkout({ ...c, s: req.s }));
+  render(req, res, 'Checkout', store.checkout({ ...c, delivery: deliveryFor(req.s, c.subtotal), s: req.s, cancelled: 'cancelled' in req.query }));
 });
-app.post('/checkout', (req, res) => {
+// Takes the order, then hands the customer to Stripe's hosted payment page.
+async function sendToStripe(req, res, o) {
+  const session = await stripe.createCheckout({ order: o, items: orders.items(o.id), origin: origin(req), storeName: req.s.store_name });
+  orders.setPayment(o.id, 'pending', session.id);
+  res.redirect(303, session.url);
+}
+app.post('/checkout', async (req, res, next) => {
   const c = cartItems(req);
   if (!c.items.length) return res.redirect('/cart');
   const b = req.body, f = (k, max = 200) => (b[k] || '').toString().trim().slice(0, max);
-  const form = { name: f('name', 80), phone: f('phone', 20), address: f('address', 300), city: f('city', 20) === 'Outside Dhaka' ? 'Outside Dhaka' : 'Dhaka', note: f('note', 300), payment_method: f('payment_method', 10), trx_id: f('trx_id', 40).toUpperCase(), gift: b.gift === '1', gift_to: f('gift_to', 40), gift_message: f('gift_message', 140) };
+  const form = { name: f('name', 80), email: f('email', 120).toLowerCase(), phone: f('phone', 20), address: f('address', 300), city: f('city', 60), postcode: f('postcode', 10).toUpperCase(), note: f('note', 300), gift: b.gift === '1', gift_to: f('gift_to', 40), gift_message: f('gift_message', 140) };
   let error = '';
-  if (!form.name || !form.address) error = 'We need your name and address.';
-  else if (!/^(\+?88)?01[3-9]\d{8}$/.test(form.phone.replace(/[\s-]/g, ''))) error = 'That phone number does not look like a Bangladeshi mobile number.';
-  else if (!PAYMENT_METHODS[form.payment_method]) error = 'Pick how you want to pay.';
-  else if (form.payment_method !== 'cod' && form.trx_id.length < 6) error = `Enter the ${PAYMENT_METHODS[form.payment_method]} transaction ID after you Send Money, or choose cash on delivery.`;
-  if (error) return res.status(400).send(store.layout({ title: 'Checkout', s: req.s, cartCount: c.items.length, body: store.checkout({ ...c, s: req.s, error, form }) }));
-  const delivery = Number(form.city === 'Dhaka' ? req.s.delivery_dhaka : req.s.delivery_outside) || 0;
-  const { id, token } = orders.create({ ...form, subtotal: c.subtotal, delivery, total: c.subtotal + delivery }, c.items);
+  if (!form.name || !form.address || !form.city) error = 'We need your name and full address.';
+  else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) error = 'That email address does not look right; we need it for your receipt.';
+  else if (!/^(\+44\s?|0)\d{9,10}$/.test(form.phone.replace(/[\s-]/g, ''))) error = 'That phone number does not look like a UK number.';
+  else if (!/^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/.test(form.postcode)) error = 'That postcode does not look right.';
+  if (error) return res.status(400).send(store.layout({ title: 'Checkout', s: req.s, cartCount: c.items.length, body: store.checkout({ ...c, delivery: deliveryFor(req.s, c.subtotal), s: req.s, error, form }) }));
+  const delivery = deliveryFor(req.s, c.subtotal);
+  const { id, token } = orders.create({ ...form, payment_method: 'card', subtotal: c.subtotal, delivery, total: c.subtotal + delivery }, c.items);
   res.setSigned('cart', [], '; Max-Age=0');
-  res.redirect(`/order/${id}/${token}`);
+  if (!stripe.enabled()) return res.redirect(`/order/${id}/${token}`);
+  sendToStripe(req, res, orders.get(id)).catch(next);
 });
-app.get('/order/:id/:token', (req, res) => {
+app.post('/order/:id/:token/pay', (req, res, next) => {
+  const o = orders.get(Number(req.params.id));
+  if (!o || o.token !== req.params.token || o.payment_status === 'paid' || o.status === 'cancelled' || !stripe.enabled()) return res.redirect(`/order/${req.params.id}/${req.params.token}`);
+  sendToStripe(req, res, o).catch(next);
+});
+app.get('/order/:id/:token', async (req, res) => {
   const o = orders.get(Number(req.params.id));
   if (!o || o.token !== req.params.token) return res.status(404).send(store.layout({ title: 'Not found', s: req.s, body: store.notFound() }));
-  render(req, res, `Order #${o.id}`, store.order({ o, items: orders.items(o.id), s: req.s }));
+  // Back from Stripe before the webhook landed? Ask Stripe directly.
+  if (o.payment_status === 'pending' && o.trx_id.startsWith('cs_') && stripe.enabled()) {
+    try { if (await stripe.isPaid(o.trx_id)) { orders.setPayment(o.id, 'paid'); o.payment_status = 'paid'; } } catch (e) { console.error(e); }
+  }
+  render(req, res, `Order #${o.id}`, store.order({ o, items: orders.items(o.id), s: req.s, stripeOn: stripe.enabled() }));
 });
 
 // ---------- admin ----------
@@ -149,7 +182,7 @@ r.post('/orders/:id/status', (req, res) => {
   res.redirect(`/admin/orders/${req.params.id}`);
 });
 r.post('/orders/:id/payment', (req, res) => {
-  if (PAYMENT_STATUSES.includes(req.body.payment_status)) orders.setPayment(Number(req.params.id), req.body.payment_status, req.body.trx_id?.toString().trim().toUpperCase().slice(0, 40));
+  if (PAYMENT_STATUSES.includes(req.body.payment_status)) orders.setPayment(Number(req.params.id), req.body.payment_status, req.body.trx_id?.toString().trim().slice(0, 60));
   flashCookie(res, 'Payment saved.');
   res.redirect(req.get('referer')?.includes('/admin/payments') ? '/admin/payments' : `/admin/orders/${req.params.id}`);
 });
@@ -169,7 +202,7 @@ function productFromBody(req, existing = {}) {
   const b = req.body, f = (k, max = 200) => (b[k] || '').toString().trim().slice(0, max);
   const p = {
     name: f('name', 120), category: CATEGORIES[b.category] ? b.category : 'perfume',
-    price: Math.max(0, Math.round(Number(b.price) || 0)), compare_price: Number(b.compare_price) > 0 ? Math.round(Number(b.compare_price)) : null,
+    price: toPence(b.price), compare_price: toPence(b.compare_price) || null,
     stock: Math.max(0, Math.round(Number(b.stock) || 0)), description: f('description', 2000),
     variants: f('variants', 200).split(',').map((v) => v.trim()).filter(Boolean).join(','),
     featured: b.featured === '1', active: b.active === '1',
@@ -192,8 +225,9 @@ r.post('/products/:id/delete', (req, res) => { products.remove(Number(req.params
 
 r.get('/settings', (req, res) => page(req, res, 'Settings', admin.settings({ s: req.s, email: req.admin.email }), req.flash));
 r.post('/settings', (req, res) => {
-  for (const k of ['store_name', 'tagline', 'email', 'phone', 'address', 'hours', 'facebook', 'instagram', 'bkash', 'nagad', 'delivery_dhaka', 'delivery_outside'])
+  for (const k of ['store_name', 'tagline', 'email', 'phone', 'address', 'city', 'hours', 'facebook', 'instagram'])
     if (k in req.body) setSetting(k, req.body[k].toString().trim().slice(0, 300));
+  for (const k of ['delivery_fee', 'free_over']) if (k in req.body) setSetting(k, toPence(req.body[k]));
   flashCookie(res, 'Settings saved.');
   res.redirect('/admin/settings');
 });

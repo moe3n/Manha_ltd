@@ -1,5 +1,5 @@
 import { esc, money, variants, img, head, attr } from './shared.js';
-import { CATEGORIES, PAYMENT_METHODS } from '../db.js';
+import { CATEGORIES } from '../db.js';
 
 const catLink = (c, cur) => `<a href="/shop/${c}" class="link${cur === c ? ' is-current' : ''}">${CATEGORIES[c]}</a>`;
 
@@ -23,7 +23,7 @@ ${body}
   <a class="contact__mail" href="mailto:${esc(s.email)}" style="--chars:${s.email.length}">${esc(s.email).replace('@', '@<wbr>')}</a>
   <div class="contact__foot">
     <p class="small"><a href="tel:${esc(s.phone.replace(/\s/g, ''))}" class="link">${esc(s.phone)}</a><br>${esc(s.address)}<br>${esc(s.hours)}</p>
-    <p class="small contact__social"><a class="link" href="${esc(s.facebook)}">Facebook</a> <a class="link" href="${esc(s.instagram)}">Instagram</a><br>© ${new Date().getFullYear()} ${esc(s.store_name)} Ltd. Prices in Bangladeshi taka.</p>
+    <p class="small contact__social"><a class="link" href="${esc(s.facebook)}">Facebook</a> <a class="link" href="${esc(s.instagram)}">Instagram</a><br>© ${new Date().getFullYear()} ${esc(s.store_name)} Ltd. Prices include VAT.</p>
   </div>
 </section>
 <script src="/store.js" defer></script>
@@ -65,7 +65,7 @@ export function home({ featured, latest, counts, s }) {
       <span class="line hero__a"><span data-line style="--i:0">Scent, step,</span></span>
       <span class="line hero__b"><span data-line style="--i:1">carry, wear.</span></span>
     </h1>
-    <p class="hero__lead" data-rise style="--i:2">${esc(s.store_name)} means gift. Four counters in one shop in Dhaka: perfume, shoes, bags and clothing, delivered anywhere in Bangladesh.</p>
+    <p class="hero__lead" data-rise style="--i:2">${esc(s.store_name)} means gift. Four counters in one shop in ${esc(s.city)}: perfume, shoes, bags and clothing, delivered anywhere in the UK.</p>
   </div>
   <div class="reel">${reel}</div>
 </section>
@@ -102,13 +102,13 @@ export function home({ featured, latest, counts, s }) {
 <section class="faq">
   <div class="faq__text">
     <h2 class="head" data-reveal>Before you order</h2>
-    <p data-reveal style="--i:1">${esc(s.address)}<br>${esc(s.hours)}<br>Delivery ${money(s.delivery_dhaka)} in Dhaka, ${money(s.delivery_outside)} outside, one to three days.<br>Pay by bKash, Nagad or cash on delivery.</p>
+    <p data-reveal style="--i:1">${esc(s.address)}<br>${esc(s.hours)}<br>Delivery ${money(s.delivery_fee)} by Royal Mail Tracked 48, free on orders over ${money(s.free_over)}.<br>Pay by card, Apple Pay or Google Pay.</p>
     <div class="acc" data-reveal style="--i:2">
-      <details><summary>Are the perfumes original?</summary><p>Yes. Every bottle is sealed, with the batch code printed on the box and the bottle. Bring any bottle back within seven days if the codes do not match.</p></details>
-      <details><summary>What if the shoes do not fit?</summary><p>Exchange them within seven days, unworn, in the box. We pay the courier for the first exchange inside Dhaka.</p></details>
-      <details><summary>How do I pay with bKash or Nagad?</summary><p>Send the total to ${esc(s.bkash)} (bKash) or ${esc(s.nagad)} (Nagad) using Send Money, then type the transaction ID at checkout. We confirm by phone within a few hours.</p></details>
+      <details><summary>Are the perfumes original?</summary><p>Yes. Every bottle is sealed, with the batch code printed on the box and the bottle. Send any bottle back within 14 days if the codes do not match and we refund it in full.</p></details>
+      <details><summary>What if the shoes do not fit?</summary><p>Return or exchange them within 14 days, unworn, in the box. We send a prepaid Royal Mail label for the first exchange.</p></details>
+      <details><summary>How do I pay?</summary><p>By card, Apple Pay or Google Pay on the payment page. Payments are handled by Stripe; we never see your card number. Your receipt arrives by email.</p></details>
       <details><summary>Can I send it as a gift?</summary><p>Yes. Tick the gift box at checkout, write the card, and we wrap it and leave the price off the slip.</p></details>
-      <details><summary>Do you deliver outside Dhaka?</summary><p>Everywhere in Bangladesh, in two to four days, by Sundarban or Pathao courier. Cash on delivery works outside Dhaka too.</p></details>
+      <details><summary>Do you deliver outside the UK?</summary><p>Not yet. Everywhere in the UK, including Northern Ireland and the islands, in two to three working days. Email us for anywhere else and we will quote the postage.</p></details>
     </div>
     <a href="/shop" class="button">Start shopping</a>
     <a href="tel:${esc(s.phone.replace(/\s/g, ''))}" class="link link-plain">Or call ${esc(s.phone)}</a>
@@ -157,15 +157,15 @@ export function product({ p, more, added, s }) {
     ${p.stock > 0 ? `
     <form method="post" action="/cart/add" class="buy">
       <input type="hidden" name="id" value="${p.id}">
-      ${vs.length ? `<fieldset class="chips"><legend class="small">${p.category === 'perfume' ? 'Size' : p.category === 'shoes' ? 'EU size' : 'Size'}</legend>
+      ${vs.length ? `<fieldset class="chips"><legend class="small">${p.category === 'shoes' ? 'UK size' : 'Size'}</legend>
         ${vs.map((v, i) => `<label class="chip"><input type="radio" name="variant" value="${esc(v)}"${i === 0 ? ' checked' : ''}><span>${esc(v)}</span></label>`).join('')}
       </fieldset>` : ''}
       <label class="qty">Quantity <input class="field nums" type="number" name="qty" value="1" min="1" max="${p.stock}"></label>
       <button class="button" type="submit">Add to cart · ${money(p.price)}</button>
       ${added ? `<p class="notice" role="status">Added. <a class="link-plain" href="/cart">Go to cart</a></p>` : ''}
     </form>
-    <p class="small">${p.stock <= 3 ? `Only ${p.stock} left. ` : ''}Delivery ${money(s.delivery_dhaka)} in Dhaka, ${money(s.delivery_outside)} elsewhere. Gift wrap and a written card at checkout.</p>`
-    : `<p class="lead">Sold out. <a class="link-plain" href="tel:${esc(s.phone.replace(/\s/g, ''))}">Call us</a> and we will tell you when it is back.</p>`}
+    <p class="small">${p.stock <= 3 ? `Only ${p.stock} left. ` : ''}Delivery ${money(s.delivery_fee)}, free over ${money(s.free_over)}. 14-day returns. Gift wrap and a written card at checkout.</p>`
+    : `<p class="lead">Sold out. <a class="link-plain" href="mailto:${esc(s.email)}">Email us</a> and we will tell you when it is back.</p>`}
   </div>
 </section>
 ${more.length ? `<section class="more wrap">
@@ -194,37 +194,30 @@ export function cart({ items, subtotal, s }) {
     </li>`).join('')}</ul>
   <div class="cart__sum">
     <p class="lead">Subtotal <span class="nums">${money(subtotal)}</span></p>
-    <p class="small">Delivery is added at checkout: ${money(s.delivery_dhaka)} in Dhaka, ${money(s.delivery_outside)} elsewhere.</p>
+    <p class="small">${subtotal >= Number(s.free_over) ? 'Delivery is free on this order.' : `Delivery ${money(s.delivery_fee)}, or free over ${money(s.free_over)}.`}</p>
     <a class="button" href="/checkout">Checkout</a>
   </div>
 </section>`;
 }
 
 // ---------- checkout ----------
-export function checkout({ items, subtotal, s, error = '', form = {} }) {
+export function checkout({ items, subtotal, delivery, s, error = '', form = {}, cancelled = false }) {
   const v = (k, d = '') => esc(form[k] ?? d);
-  const chk = (k, val) => ((form[k] ?? 'cod') === val ? ' checked' : '');
   return `
 <section class="wrap checkout">
   <h1 class="head">Checkout</h1>
   ${error ? `<p class="notice notice--bad" role="alert">${esc(error)}</p>` : ''}
+  ${cancelled ? `<p class="notice" role="status">Payment was not completed. Nothing has been charged; your cart is still here.</p>` : ''}
   <form method="post" action="/checkout" class="checkout__form" data-checkout>
     <div class="checkout__fields">
       <h2 class="lead">Where to send it</h2>
       <label>Your name <input class="field" name="name" required value="${v('name')}" autocomplete="name"></label>
-      <label>Phone <input class="field" name="phone" required value="${v('phone')}" autocomplete="tel" inputmode="tel" placeholder="01XXXXXXXXX"></label>
-      <label>Address <textarea class="field" name="address" required rows="3" autocomplete="street-address">${v('address')}</textarea></label>
-      <fieldset class="chips"><legend class="small">City</legend>
-        <label class="chip"><input type="radio" name="city" value="Dhaka"${chk('city', 'Dhaka')}${!form.city ? ' checked' : ''} data-delivery="${esc(s.delivery_dhaka)}"><span>Dhaka</span></label>
-        <label class="chip"><input type="radio" name="city" value="Outside Dhaka"${chk('city', 'Outside Dhaka')} data-delivery="${esc(s.delivery_outside)}"><span>Outside Dhaka</span></label>
-      </fieldset>
-
-      <h2 class="lead">How to pay</h2>
-      <div class="pay">
-        <label class="pay__opt"><input type="radio" name="payment_method" value="cod"${chk('payment_method', 'cod')}><span>Cash on delivery</span><span class="small muted">Pay the courier when the parcel arrives.</span></label>
-        <label class="pay__opt"><input type="radio" name="payment_method" value="bkash"${chk('payment_method', 'bkash')}><span>bKash</span><span class="small muted">Send Money to <b class="nums">${esc(s.bkash)}</b>, then enter the transaction ID below.</span></label>
-        <label class="pay__opt"><input type="radio" name="payment_method" value="nagad"${chk('payment_method', 'nagad')}><span>Nagad</span><span class="small muted">Send Money to <b class="nums">${esc(s.nagad)}</b>, then enter the transaction ID below.</span></label>
-        <label data-trx hidden>Transaction ID <input class="field" name="trx_id" value="${v('trx_id')}" placeholder="e.g. 9A7B3C2D1E" autocapitalize="characters"></label>
+      <label>Email, for the receipt <input class="field" type="email" name="email" required value="${v('email')}" autocomplete="email"></label>
+      <label>Phone, for the courier <input class="field" name="phone" required value="${v('phone')}" autocomplete="tel" inputmode="tel" placeholder="07700 900123"></label>
+      <label>Address <textarea class="field" name="address" required rows="2" autocomplete="street-address">${v('address')}</textarea></label>
+      <div class="cols2">
+        <label>Town or city <input class="field" name="city" required value="${v('city')}" autocomplete="address-level2"></label>
+        <label>Postcode <input class="field" name="postcode" required value="${v('postcode')}" autocomplete="postal-code" autocapitalize="characters"></label>
       </div>
 
       <h2 class="lead">A gift?</h2>
@@ -233,32 +226,38 @@ export function checkout({ items, subtotal, s, error = '', form = {} }) {
         <label>To <input class="field" name="gift_to" maxlength="40" value="${v('gift_to')}"></label>
         <label>Card message <textarea class="field" name="gift_message" maxlength="140" rows="3">${v('gift_message')}</textarea></label>
       </div>
-      <label>Anything else? <textarea class="field" name="note" rows="2" placeholder="Leave it with the guard, call before coming, …">${v('note')}</textarea></label>
-      <button class="button" type="submit">Place order</button>
+      <label>Anything else? <textarea class="field" name="note" rows="2" placeholder="Leave with a neighbour, safe place, …">${v('note')}</textarea></label>
+      <button class="button" type="submit">Continue to payment</button>
+      <p class="small">You pay on the next page by card, Apple Pay or Google Pay. Payments are handled by Stripe; we never see your card number.</p>
     </div>
     <aside class="checkout__sum">
       <h2 class="lead">Your order</h2>
       <ul class="sum__rows">${items.map((it) => `<li><span>${esc(it.name)}${it.variant ? ` <span class="muted">${esc(it.variant)}</span>` : ''} × <span class="nums">${it.qty}</span></span><span class="nums">${money(it.price * it.qty)}</span></li>`).join('')}</ul>
       <p class="sum__line">Subtotal <span class="nums">${money(subtotal)}</span></p>
-      <p class="sum__line">Delivery <span class="nums" data-delivery-out>${money(s.delivery_dhaka)}</span></p>
-      <p class="sum__line lead">Total <span class="nums" data-total-out data-subtotal="${subtotal}">${money(subtotal + Number(s.delivery_dhaka))}</span></p>
+      <p class="sum__line">Delivery <span class="nums">${delivery ? money(delivery) : 'Free'}</span></p>
+      <p class="sum__line lead">Total <span class="nums">${money(subtotal + delivery)}</span></p>
+      <p class="small muted">Includes VAT. Royal Mail Tracked 48, two to three working days.</p>
     </aside>
   </form>
 </section>`;
 }
 
 // ---------- order confirmation ----------
-export function order({ o, items, s }) {
-  const pay = PAYMENT_METHODS[o.payment_method];
+export function order({ o, items, s, stripeOn }) {
+  const paid = o.payment_status === 'paid';
   return `
 <section class="wrap order">
-  <h1 class="head" data-rise style="--i:0">Thank you, ${esc(o.name.split(' ')[0])}.</h1>
-  <p class="lead" data-rise style="--i:1">Order <span class="nums">#${o.id}</span> is ${esc(o.status)}. We will call <span class="nums">${esc(o.phone)}</span> to confirm.</p>
-  ${o.payment_status === 'pending' && o.payment_method !== 'cod' ? `<p class="notice" data-rise style="--i:2">If you have not sent it yet: Send Money <b class="nums">${money(o.total)}</b> to <b class="nums">${esc(o.payment_method === 'bkash' ? s.bkash : s.nagad)}</b> on ${pay}, reference <b class="nums">#${o.id}</b>. ${o.trx_id ? `We have your transaction ID <span class="nums">${esc(o.trx_id)}</span>.` : ''}</p>` : ''}
+  <h1 class="head" data-rise style="--i:0">${paid ? `Thank you, ${esc(o.name.split(' ')[0])}.` : 'One more step.'}</h1>
+  <p class="lead" data-rise style="--i:1">${paid
+    ? `Order <span class="nums">#${o.id}</span> is paid. Your receipt is on its way to ${esc(o.email)}, and we will email again when it ships.`
+    : `Order <span class="nums">#${o.id}</span> is saved but not paid yet.`}</p>
+  ${!paid && o.status !== 'cancelled' ? (stripeOn
+    ? `<form method="post" action="/order/${o.id}/${o.token}/pay" data-rise style="--i:2"><button class="button" type="submit">Pay ${money(o.total)} by card</button></form>`
+    : `<p class="notice" data-rise style="--i:2">Online payment is not switched on yet. We will email you a payment link for <b class="nums">${money(o.total)}</b>.</p>`) : ''}
   <ul class="sum__rows">${items.map((it) => `<li><span>${esc(it.name)}${it.variant ? ` <span class="muted">${esc(it.variant)}</span>` : ''} × <span class="nums">${it.qty}</span></span><span class="nums">${money(it.price * it.qty)}</span></li>`).join('')}</ul>
-  <p class="sum__line">Delivery <span class="nums">${money(o.delivery)}</span></p>
-  <p class="sum__line lead">Total <span class="nums">${money(o.total)}</span> · ${pay}${o.payment_status === 'paid' ? ', paid' : ''}</p>
-  <p>${esc(o.address)}, ${esc(o.city)}</p>
+  <p class="sum__line">Delivery <span class="nums">${o.delivery ? money(o.delivery) : 'Free'}</span></p>
+  <p class="sum__line lead">Total <span class="nums">${money(o.total)}</span>${paid ? ' · paid' : ''}</p>
+  <p>${esc(o.address)}, ${esc(o.city)}, ${esc(o.postcode)}</p>
   ${o.gift ? `<div class="card card--small"><p class="card__to">To <span>${esc(o.gift_to)}</span>,</p><p class="card__msg">${esc(o.gift_message)}</p><p class="card__mark">${esc(s.store_name)}</p></div>` : ''}
   <p><a class="button" href="/shop">Keep shopping</a></p>
 </section>`;

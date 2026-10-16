@@ -48,22 +48,11 @@
     sync();
   }
 
-  // Checkout: transaction ID only for bKash/Nagad, gift fields on demand, delivery by city.
+  // Checkout: gift fields on demand, prefilled from the card written on the home page.
   const co = $('[data-checkout]');
   if (co) {
-    const trx = $('[data-trx]', co), giftToggle = $('[data-gift-toggle]', co), giftFields = $('[data-gift-fields]', co);
-    const out = $('[data-delivery-out]', co), total = $('[data-total-out]', co);
-    const fmt = (n) => '৳' + new Intl.NumberFormat('en-IN').format(n);
-    const update = () => {
-      const method = co.elements.payment_method.value;
-      trx.hidden = method === 'cod';
-      $('input', trx).required = method !== 'cod';
-      giftFields.hidden = !giftToggle.checked;
-      const city = $('input[name=city]:checked', co);
-      const fee = Number(city?.dataset.delivery || 0);
-      out.textContent = fmt(fee);
-      total.textContent = fmt(Number(total.dataset.subtotal) + fee);
-    };
+    const giftToggle = $('[data-gift-toggle]', co), giftFields = $('[data-gift-fields]', co);
+    const update = () => { giftFields.hidden = !giftToggle.checked; };
     const saved = read();
     if (saved.message && !co.elements.gift_message.value) { co.elements.gift_message.value = saved.message; co.elements.gift_to.value = saved.to || ''; }
     co.addEventListener('change', update);

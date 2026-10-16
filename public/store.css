@@ -282,16 +282,14 @@ main { position: relative; z-index: 2; background: var(--bg); }
 .checkout__fields { display: grid; gap: 1.25rem; max-width: 36rem; }
 .checkout__fields .lead { margin-top: 1.5rem; }
 .checkout__fields .lead:first-child { margin-top: 0; }
-.pay { display: grid; gap: 0.75rem; }
-.pay__opt { display: grid; grid-template-columns: auto 1fr; column-gap: 0.75rem; padding: 1rem; background: var(--surface); cursor: pointer; }
-.pay__opt input { grid-row: 1 / 3; align-self: start; margin-top: 0.3rem; accent-color: var(--ink); }
-.pay__opt > span:first-of-type { font-weight: 500; }
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .checkout__sum { grid-column: 3; position: sticky; top: 5rem; padding: 1.5rem; background: var(--surface); display: grid; gap: 0.75rem; }
 .sum__rows { display: grid; gap: 0.5rem; max-width: 36rem; }
 .sum__rows li, .sum__line { display: flex; justify-content: space-between; gap: 1rem; max-width: 36rem; }
 .sum__line { margin: 0; }
 @media (max-width: 800px) {
   .checkout__form { display: block; }
+  .cols2 { grid-template-columns: 1fr; }
   .checkout__sum { position: static; margin-top: 2rem; }
   .cart__row { grid-template-columns: 4rem 1fr; }
   .cart__pic img { width: 4rem; height: 5rem; }
